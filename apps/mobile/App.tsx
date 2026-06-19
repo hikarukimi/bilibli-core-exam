@@ -14,7 +14,7 @@ import {mockNativeBridge} from './src/native/mockNativeBridge';
 import {createInitialAssistantState, assistantReducer} from './src/state/assistantState';
 import {requestSingleRecognition} from './src/usecases/requestSingleRecognition';
 
-const answerClient = createAnswerClient({baseUrl: 'http://10.0.2.2:8000'});
+const answerClient = createAnswerClient({baseUrl: 'http://localhost:8000'});
 
 function App() {
   const [state, dispatch] = useReducer(

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "bili-core-0001",
+    "question": "下列哪一部作品的主角是鲁路修？",
+    "options": [
+      { "id": "A", "text": "火影忍者" },
+      { "id": "B", "text": "Code Geass 反叛的鲁路修" },
+      { "id": "C", "text": "银魂" },
+      { "id": "D", "text": "CLANNAD" }
+    ],
+    "answerOptionId": "B",
+    "answerText": "Code Geass 反叛的鲁路修",
+    "explanation": "鲁路修·兰佩路基是《Code Geass 反叛的鲁路修》的男主角。",
+    "sources": [
+      {
+        "title": "Code Geass 维基",
+        "url": "https://example.com/code-geass"
+      }
+    ],
+    "tags": ["动画", "角色"]
+  },
+  {
+    "id": "bili-core-0002",
+    "question": "《海贼王》中路飞所属的海贼团名称是什么？",
+    "options": [
+      { "id": "A", "text": "红发海贼团" },
+      { "id": "B", "text": "白胡子海贼团" },
+      { "id": "C", "text": "草帽海贼团" },
+      { "id": "D", "text": "百兽海贼团" }
+    ],
+    "answerOptionId": "C",
+    "answerText": "草帽海贼团",
+    "explanation": "蒙奇·D·路飞是草帽海贼团的船长。",
+    "sources": [
+      {
+        "title": "海贼王设定资料",
+        "url": "https://example.com/one-piece"
+      }
+    ],
+    "tags": ["动画", "海贼王"]
+  },
+  {
+    "id": "bili-core-0003",
+    "question": "bilibili 的吉祥物名称是什么？",
+    "options": [
+      { "id": "A", "text": "2233 娘" },
+      { "id": "B", "text": "初音未来" },
+      { "id": "C", "text": "洛天依" },
+      { "id": "D", "text": "阿狸" }
+    ],
+    "answerOptionId": "A",
+    "answerText": "2233 娘",
+    "explanation": "bilibili 的官方拟人形象是 22 娘和 33 娘，合称 2233 娘。",
+    "sources": [
+      {
+        "title": "bilibili 官方介绍",
+        "url": "https://example.com/bilibili"
+      }
+    ],
+    "tags": ["bilibili", "常识"]
+  }
+]
