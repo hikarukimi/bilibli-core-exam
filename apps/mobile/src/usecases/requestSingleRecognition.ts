@@ -1,11 +1,11 @@
 import {AnswerClient} from '../api/answerClient';
 import {AnswerRequest} from '../api/answerTypes';
-import {NativeBridge} from '../native/nativeBridgeTypes';
+import {Spec as AssistantBridge} from '../native/NativeAssistantBridge';
 import {parseQuestionText} from '../ocr/parseQuestionText';
 import {AssistantAction} from '../state/assistantState';
 
 type RequestSingleRecognitionInput = {
-  bridge: NativeBridge;
+  bridge: AssistantBridge;
   answerClient: AnswerClient;
   dispatch: (action: AssistantAction) => void;
 };
@@ -19,8 +19,11 @@ export async function requestSingleRecognition({
 
   const permissions = await bridge.getPermissionState();
   if (!permissions.overlayGranted) {
-    dispatch({type: 'recognition-failed', message: '缺少悬浮窗权限。'});
-    return;
+    const updated = await bridge.requestOverlayPermission();
+    if (!updated.overlayGranted) {
+      dispatch({type: 'recognition-failed', message: '缺少悬浮窗权限。'});
+      return;
+    }
   }
   if (!permissions.screenCaptureGranted) {
     dispatch({type: 'recognition-failed', message: '缺少屏幕捕获授权。'});

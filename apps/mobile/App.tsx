@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 
 import {createAnswerClient} from './src/api/answerClient';
-import {mockNativeBridge} from './src/native/mockNativeBridge';
+import AssistantBridge from './src/native/NativeAssistantBridge';
 import {createInitialAssistantState, assistantReducer} from './src/state/assistantState';
 import {requestSingleRecognition} from './src/usecases/requestSingleRecognition';
 
@@ -45,7 +45,7 @@ function App() {
 
   async function handleRecognize() {
     await requestSingleRecognition({
-      bridge: mockNativeBridge,
+      bridge: AssistantBridge,
       answerClient,
       dispatch,
     });
