@@ -1,0 +1,92 @@
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors and IDEs
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.iml
+
+# Environment and local config
+.env
+.env.*
+!.env.example
+local.properties
+*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Node / package managers
+node_modules/
+**/node_modules/
+.pnpm-store/
+.npm/
+.yarn/*
+!.yarn/patches/
+!.yarn/plugins/
+!.yarn/releases/
+!.yarn/sdks/
+!.yarn/versions/
+
+# TypeScript / test / coverage
+*.tsbuildinfo
+coverage/
+**/coverage/
+.nyc_output/
+
+# React Native / Metro
+.metro-health-check*
+*.jsbundle
+.bundle/
+**/.bundle/
+
+# Android / Gradle
+.gradle/
+**/.gradle/
+**/build/
+**/.cxx/
+**/.externalNativeBuild/
+**/.kotlin/
+*.hprof
+
+# Android signing
+*.jks
+*.keystore
+!debug.keystore
+!**/debug.keystore
+
+# Generated APK/AAB artifacts
+*.apk
+*.ap_
+*.aab
+
+# iOS / Xcode, kept for future compatibility even though MVP is Android-only
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+**/Pods/
+vendor/bundle/
+
+# Fastlane artifacts
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/screenshots/
+**/fastlane/test_output/
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+*.tmp
