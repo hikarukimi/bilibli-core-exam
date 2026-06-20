@@ -12,6 +12,7 @@ import {
   loadKnowledgeBase,
 } from "../knowledge/loadKnowledgeBase.ts";
 import { type ModelProvider, stubModelProvider } from "../provider/provider.ts";
+import { backfillKnowledge } from "../knowledge/backfillKnowledge.ts";
 import { validateAnswerRequest } from "../http/validateRequest.ts";
 import { logAnswerRequest } from "../observability/logger.ts";
 
@@ -62,9 +63,7 @@ export function createAnswerRoute(deps: AnswerRouteDeps = {}): Hono {
     try {
       entries = await loadEntries();
     } catch (cause) {
-      const code = cause instanceof KnowledgeBaseError
-        ? "KNOWLEDGE_BASE_ERROR"
-        : "INTERNAL_ERROR";
+      const code = cause instanceof KnowledgeBaseError ? "KNOWLEDGE_BASE_ERROR" : "INTERNAL_ERROR";
       return respond(
         buildFailure(code, "知识库加载或查询失败。", request.requestId, {
           matchedKnowledgeBase: false,
@@ -80,7 +79,12 @@ export function createAnswerRoute(deps: AnswerRouteDeps = {}): Hono {
     }
 
     try {
-      const { answer } = await provider.generateAnswer(request);
+      const { answer, question, options } = await provider.generateAnswer(request);
+      backfillKnowledge({
+        answer,
+        question: question ?? request.question,
+        options: options ?? request.options,
+      });
       return respond(buildAnswerFromProvider(request.requestId, answer, elapsed()));
     } catch {
       return respond(

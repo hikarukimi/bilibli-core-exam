@@ -303,8 +303,8 @@ class NativeAssistantBridgeModule(
     const val NAME = "AssistantBridge"
     private const val REQUEST_CAPTURE = 7001
     private const val BACKEND_BASE_URL = "http://127.0.0.1:8000"
-    private const val TOTAL_TIMEOUT_MS = 10_000L
-    private const val HTTP_TIMEOUT_MS = 5_000L
+    private const val TOTAL_TIMEOUT_MS = 35_000L
+    private const val HTTP_TIMEOUT_MS = 30_000L
     private val PINK = Color.parseColor("#FB7299")
     private val BLUE = Color.parseColor("#00A1D6")
   }
