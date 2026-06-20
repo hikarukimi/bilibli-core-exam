@@ -25,10 +25,6 @@ export async function requestSingleRecognition({
       return;
     }
   }
-  if (!permissions.screenCaptureGranted) {
-    dispatch({type: 'recognition-failed', message: '缺少屏幕捕获授权。'});
-    return;
-  }
 
   const ocrResult = await bridge.recognizeCurrentScreen();
   if (!ocrResult.rawText.trim()) {

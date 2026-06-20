@@ -40,7 +40,12 @@ function App() {
   }, [state]);
 
   async function handleStartSession() {
-    dispatch({type: 'session-started'});
+    try {
+      await AssistantBridge.startScreenCaptureSession();
+      dispatch({type: 'session-started'});
+    } catch {
+      dispatch({type: 'recognition-failed', message: '缺少屏幕捕获授权。'});
+    }
   }
 
   async function handleRecognize() {
