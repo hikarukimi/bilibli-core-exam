@@ -34,7 +34,8 @@ class ScreenCaptureService : Service() {
 
   private val projectionCallback = object : MediaProjection.Callback() {
     override fun onStop() {
-      release()
+      release(stopProjection = false)
+      onSessionInvalidated?.invoke()
       stopSelf()
     }
   }
@@ -67,7 +68,7 @@ class ScreenCaptureService : Service() {
   }
 
   override fun onDestroy() {
-    release()
+    release(stopProjection = true)
     super.onDestroy()
   }
 
@@ -146,13 +147,18 @@ class ScreenCaptureService : Service() {
       .build()
   }
 
-  private fun release() {
+  private fun release(stopProjection: Boolean) {
     virtualDisplay?.release()
     virtualDisplay = null
     imageReader?.close()
     imageReader = null
-    projection?.unregisterCallback(projectionCallback)
-    projection?.stop()
+    try {
+      projection?.unregisterCallback(projectionCallback)
+    } catch (_: Exception) {
+    }
+    if (stopProjection) {
+      projection?.stop()
+    }
     projection = null
     if (instance === this) instance = null
   }
@@ -161,6 +167,8 @@ class ScreenCaptureService : Service() {
     @Volatile
     var instance: ScreenCaptureService? = null
       private set
+
+    var onSessionInvalidated: (() -> Unit)? = null
 
     const val EXTRA_RESULT_CODE = "result_code"
     const val EXTRA_RESULT_DATA = "result_data"
