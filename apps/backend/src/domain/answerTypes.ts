@@ -9,6 +9,12 @@ export type AnswerOption = {
   text: string;
 };
 
+export type ClientTiming = {
+  captureMs?: number;
+  ocrMs?: number;
+  clientWaitMs?: number;
+};
+
 export type AnswerRequest = {
   requestId: string;
   scenario: "bilibili_core_test";
@@ -19,6 +25,7 @@ export type AnswerRequest = {
     platform?: string;
     appVersion?: string;
     ocrEngine?: string;
+    timing?: ClientTiming;
   };
 };
 
@@ -37,10 +44,21 @@ export type AnswerResult = {
   sources: AnswerSource[];
 };
 
+export type AnswerTiming = {
+  captureMs?: number;
+  ocrMs?: number;
+  clientWaitMs?: number;
+  kbMatchMs?: number;
+  modelCallMs?: number;
+  totalServerMs?: number;
+};
+
 export type AnswerDiagnostics = {
   matchedKnowledgeBase: boolean;
   modelUsed: boolean;
   elapsedMs: number;
+  modelRetries?: number;
+  timing?: AnswerTiming;
 };
 
 export type AnswerError = {

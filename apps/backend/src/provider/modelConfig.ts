@@ -21,7 +21,7 @@ export async function loadModelConfig(source: URL = defaultUrl): Promise<ModelCo
     model: asString(raw.model, "glm-4-plus"),
     webSearch: raw.webSearch !== false,
     temperature: typeof raw.temperature === "number" ? raw.temperature : 0.2,
-    requestTimeoutMs: typeof raw.requestTimeoutMs === "number" ? raw.requestTimeoutMs : 28000,
+    requestTimeoutMs: typeof raw.requestTimeoutMs === "number" ? raw.requestTimeoutMs : 10000,
     apiKey: Deno.env.get(apiKeyEnv) ?? "",
   };
 }

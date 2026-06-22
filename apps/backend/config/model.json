@@ -3,6 +3,6 @@
   "model": "glm-4-plus",
   "webSearch": true,
   "temperature": 0.2,
-  "requestTimeoutMs": 28000,
+  "requestTimeoutMs": 10000,
   "apiKeyEnv": "GLM_API_KEY"
 }

@@ -1,10 +1,21 @@
-import type { AnswerDiagnostics, AnswerResponse, AnswerResult } from "./answerTypes.ts";
+import type {
+  AnswerDiagnostics,
+  AnswerResponse,
+  AnswerResult,
+  AnswerTiming,
+} from "./answerTypes.ts";
 import type { MatchResult } from "./matchKnowledgeBase.ts";
+
+export type DiagnosticsExtra = {
+  timing?: AnswerTiming;
+  modelRetries?: number;
+};
 
 export function buildAnswerFromKnowledge(
   requestId: string,
   match: MatchResult,
   elapsedMs: number,
+  extra: DiagnosticsExtra = {},
 ): AnswerResponse {
   const { entry, confidence } = match;
   return {
@@ -18,7 +29,12 @@ export function buildAnswerFromKnowledge(
       sourceType: "knowledge_base",
       sources: entry.sources,
     },
-    diagnostics: { matchedKnowledgeBase: true, modelUsed: false, elapsedMs },
+    diagnostics: {
+      matchedKnowledgeBase: true,
+      modelUsed: false,
+      elapsedMs,
+      ...extra,
+    },
   };
 }
 
@@ -26,12 +42,18 @@ export function buildAnswerFromProvider(
   requestId: string,
   answer: AnswerResult,
   elapsedMs: number,
+  extra: DiagnosticsExtra = {},
 ): AnswerResponse {
   return {
     requestId,
     status: answer.confidence === "low" ? "low_confidence" : "answered",
     answer,
-    diagnostics: { matchedKnowledgeBase: false, modelUsed: true, elapsedMs },
+    diagnostics: {
+      matchedKnowledgeBase: false,
+      modelUsed: true,
+      elapsedMs,
+      ...extra,
+    },
   };
 }
 

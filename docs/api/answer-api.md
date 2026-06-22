@@ -23,7 +23,12 @@
   "clientContext": {
     "platform": "android",
     "appVersion": "0.1.0",
-    "ocrEngine": "mlkit"
+    "ocrEngine": "mlkit",
+    "timing": {
+      "captureMs": 120,
+      "ocrMs": 2400,
+      "clientWaitMs": 8300
+    }
   }
 }
 ```
@@ -37,7 +42,15 @@
 | `rawText` | 是 | 原始题目文本，是后端兜底输入。 |
 | `question` | 否 | 客户端尽力解析出的题干。 |
 | `options` | 否 | 客户端尽力解析出的选项。 |
-| `clientContext` | 否 | 客户端版本和 OCR 信息。 |
+| `clientContext` | 否 | 客户端版本、OCR 信息和分段耗时。 |
+
+`clientContext.timing` 用于全链路性能排查，全部为毫秒数字，不含截图或用户身份：
+
+| 字段 | 说明 |
+| --- | --- |
+| `captureMs` | 客户端截取当前屏幕画面耗时。 |
+| `ocrMs` | 客户端 ML Kit 端侧 OCR 耗时。 |
+| `clientWaitMs` | 客户端测得的请求往返耗时（含网络与后端处理），可选。 |
 
 客户端不得上传截图、Cookie、bilibili 账号或页面接口数据。
 
@@ -81,6 +94,8 @@
 | `answer.sourceType` | `knowledge_base`、`model_web`、`mixed`、`none`。 |
 | `answer.sources` | 来源标题、链接和摘要；模型无法提供时可为空。 |
 | `diagnostics` | 仅用于客户端调试和后端排查，不作为用户主要展示内容。 |
+
+`diagnostics` 在 MVP 至少包含 `matchedKnowledgeBase`、`modelUsed` 和 `elapsedMs`，并可携带服务端分段耗时 `timing`（如 `kbMatchMs`、`modelCallMs`、`totalServerMs`），用于全链路性能排查。
 
 ## 低置信响应示例
 
@@ -135,5 +150,15 @@
 
 ## 超时策略
 
-MVP 使用同步 HTTP 请求。建议后端总超时控制在 8 到 12 秒。超时后返回失败响应，由用户手动重试。
+MVP 使用同步 HTTP 请求。超时预算按段分配，并保持一条不等式约束：**OCR 段 + 网络段 ≤ 端到端硬上限**，且**后端两次模型调用合计 ≤ 网络段**，避免出现“客户端已超时、后端仍在跑”的浪费。
+
+| 段 | 预算 | 说明 |
+| --- | --- | --- |
+| 端到端硬上限 | 20s | 客户端从触发识别到放弃的总时长。 |
+| 端侧 OCR | 8s | ML Kit 端侧识别上限。 |
+| 网络 + 后端 | ≈12s | 端到端硬上限减去截屏与 OCR 已耗时间。 |
+| 后端模型单次调用 | 10s | 对齐建议的 8–12s 区间。 |
+| 模型解析失败重试 | 纳入后端预算 | 仅在首次输出无法解析为 JSON 时重试一次，两次合计不得超过后端总预算。 |
+
+超时后返回失败响应，由用户手动重试。
 

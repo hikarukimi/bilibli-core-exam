@@ -1,4 +1,4 @@
-import type { AnswerOption, AnswerRequest } from "../domain/answerTypes.ts";
+import type { AnswerOption, AnswerRequest, ClientTiming } from "../domain/answerTypes.ts";
 
 type ValidationError = {
   code: "EMPTY_TEXT" | "UNSUPPORTED_QUESTION_TYPE" | "INVALID_BODY";
@@ -16,6 +16,31 @@ function parseOptions(value: unknown): AnswerOption[] | undefined {
       !!item && typeof item.id === "string" && typeof item.text === "string",
   );
   return options.length > 0 ? options : undefined;
+}
+
+function num(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function parseClientContext(value: unknown): AnswerRequest["clientContext"] {
+  if (!value || typeof value !== "object") return undefined;
+  const raw = value as Record<string, unknown>;
+  const timingRaw = raw.timing;
+  let timing: ClientTiming | undefined;
+  if (timingRaw && typeof timingRaw === "object") {
+    const t = timingRaw as Record<string, unknown>;
+    timing = {
+      captureMs: num(t.captureMs),
+      ocrMs: num(t.ocrMs),
+      clientWaitMs: num(t.clientWaitMs),
+    };
+  }
+  return {
+    platform: typeof raw.platform === "string" ? raw.platform : undefined,
+    appVersion: typeof raw.appVersion === "string" ? raw.appVersion : undefined,
+    ocrEngine: typeof raw.ocrEngine === "string" ? raw.ocrEngine : undefined,
+    timing,
+  };
 }
 
 export function validateAnswerRequest(body: unknown): ValidationResult {
@@ -48,7 +73,7 @@ export function validateAnswerRequest(body: unknown): ValidationResult {
       rawText,
       question: question || undefined,
       options,
-      clientContext: raw.clientContext as AnswerRequest["clientContext"],
+      clientContext: parseClientContext(raw.clientContext),
     },
   };
 }

@@ -16,6 +16,7 @@ export type ModelProviderResult = {
   answer: AnswerResult;
   question?: string;
   options?: AnswerOption[];
+  modelRetries: number;
 };
 
 export interface ModelProvider {
@@ -35,6 +36,7 @@ export const stubModelProvider: ModelProvider = {
         sourceType: "none",
         sources: [],
       },
+      modelRetries: 0,
     });
   },
 };
@@ -73,9 +75,15 @@ export function createGlmProvider(config: ModelConfig): ModelProvider {
   return {
     name: "glm",
     async generateAnswer(input) {
+      const deadline = Date.now() + config.requestTimeoutMs;
+      let retries = 0;
       for (const strict of [false, true]) {
-        const result = parseAnswer(await callModel(config, input, strict), config.webSearch);
-        if (result) return result;
+        const remaining = deadline - Date.now();
+        if (remaining <= 0) break;
+        const content = await callModel(config, input, strict, remaining);
+        const result = parseAnswer(content, config.webSearch);
+        if (result) return { ...result, modelRetries: retries };
+        retries += 1;
       }
       throw new Error("模型返回无法解析为结构化答案。");
     },
@@ -86,9 +94,10 @@ async function callModel(
   config: ModelConfig,
   input: ModelProviderInput,
   strict: boolean,
+  timeoutMs: number,
 ): Promise<string> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), config.requestTimeoutMs);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(`${config.baseUrl}/chat/completions`, {
       method: "POST",
@@ -134,7 +143,10 @@ function buildUserPrompt(input: ModelProviderInput): string {
   return parts.join("\n\n");
 }
 
-function parseAnswer(content: string, webSearch: boolean): ModelProviderResult | null {
+function parseAnswer(
+  content: string,
+  webSearch: boolean,
+): Omit<ModelProviderResult, "modelRetries"> | null {
   const parsed = extractJson(content);
   const text = str(parsed?.text);
   if (!parsed || !text) return null;

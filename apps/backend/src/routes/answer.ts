@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import type { AnswerResponse } from "../domain/answerTypes.ts";
+import type { AnswerResponse, AnswerTiming } from "../domain/answerTypes.ts";
 import {
   buildAnswerFromKnowledge,
   buildAnswerFromProvider,
@@ -42,9 +42,11 @@ export function createAnswerRoute(deps: AnswerRouteDeps = {}): Hono {
 
     const { request } = validation;
     const questionText = request.question?.trim() || request.rawText;
+    const clientTiming = request.clientContext?.timing;
     const elapsed = () => Math.round(performance.now() - startedAt);
 
     const respond = (response: AnswerResponse) => {
+      const timing = response.diagnostics?.timing;
       logAnswerRequest({
         requestId: response.requestId,
         timestamp: new Date().toISOString(),
@@ -52,12 +54,20 @@ export function createAnswerRoute(deps: AnswerRouteDeps = {}): Hono {
         matchedKnowledgeBase: response.diagnostics?.matchedKnowledgeBase ?? false,
         modelUsed: response.diagnostics?.modelUsed ?? false,
         modelSucceeded: response.status !== "failed",
+        modelRetries: response.diagnostics?.modelRetries,
         elapsedMs: response.diagnostics?.elapsedMs ?? elapsed(),
+        timing,
         confidence: response.answer?.confidence,
         failureReason: response.error?.code,
       });
       return c.json(response, httpStatusFor(response));
     };
+
+    const buildTiming = (extra: AnswerTiming): AnswerTiming => ({
+      ...clientTiming,
+      ...extra,
+      totalServerMs: elapsed(),
+    });
 
     let entries: KnowledgeEntry[];
     try {
@@ -69,29 +79,45 @@ export function createAnswerRoute(deps: AnswerRouteDeps = {}): Hono {
           matchedKnowledgeBase: false,
           modelUsed: false,
           elapsedMs: elapsed(),
+          timing: buildTiming({}),
         }),
       );
     }
 
+    const matchStartedAt = performance.now();
     const match = matchKnowledgeBase(request, entries);
+    const kbMatchMs = Math.round(performance.now() - matchStartedAt);
     if (match) {
-      return respond(buildAnswerFromKnowledge(request.requestId, match, elapsed()));
+      return respond(
+        buildAnswerFromKnowledge(request.requestId, match, elapsed(), {
+          timing: buildTiming({ kbMatchMs }),
+        }),
+      );
     }
 
+    const modelStartedAt = performance.now();
     try {
-      const { answer, question, options } = await provider.generateAnswer(request);
+      const { answer, question, options, modelRetries } = await provider.generateAnswer(request);
+      const modelCallMs = Math.round(performance.now() - modelStartedAt);
       backfillKnowledge({
         answer,
         question: question ?? request.question,
         options: options ?? request.options,
       });
-      return respond(buildAnswerFromProvider(request.requestId, answer, elapsed()));
+      return respond(
+        buildAnswerFromProvider(request.requestId, answer, elapsed(), {
+          modelRetries,
+          timing: buildTiming({ kbMatchMs, modelCallMs }),
+        }),
+      );
     } catch {
+      const modelCallMs = Math.round(performance.now() - modelStartedAt);
       return respond(
         buildFailure("MODEL_ERROR", "模型服务调用失败。", request.requestId, {
           matchedKnowledgeBase: false,
           modelUsed: true,
           elapsedMs: elapsed(),
+          timing: buildTiming({ kbMatchMs, modelCallMs }),
         }),
       );
     }
